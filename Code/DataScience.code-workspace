@@ -1,0 +1,194 @@
+import numpy as np
+from statsmodels.tsa.holtwinters import ExponentialSmoothing
+from statsmodels.tsa.api import Holt
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Reading in all data from excel files needed for project
+iPhoneRev= 'C:/Users/cornellt/Downloads/statistic_id263402_apple-iphone-sales-revenue-2007-2024.xlsx'
+iPhoneRevData= pd.read_excel(iPhoneRev, sheet_name= 'Data', skiprows=4, usecols='B:C')
+iPhoneRevData.columns=['Quarter', 'Revenue in Millions USD']
+iPhoneRevData['Revenue in Millions USD'] = pd.to_numeric(iPhoneRevData['Revenue in Millions USD'], errors='coerce')
+
+iPadRev='C:/Users/cornellt/Downloads/statistic_id269914_apples-global-revenue-from-ipad-sales-2010-2024.xlsx'
+iPadRevData= pd.read_excel(iPadRev, sheet_name= 'Data', skiprows=4, usecols='B:C')
+iPadRevData.columns=['Quarter', 'Revenue in Millions USD']
+iPadRevData['Revenue in Millions USD'] = pd.to_numeric(iPadRevData['Revenue in Millions USD'])
+
+iPhoneUnits = 'C:/Users/cornellt/Downloads/statistic_id263401_apple-iphone-unit-sales-worldwide-2007-2018-by-quarter.xlsx'
+iPhoneUnitsData = pd.read_excel(iPhoneUnits, sheet_name= 'Data', skiprows=4, usecols='B:C')
+iPhoneUnitsData.columns=['Quarter', 'Units Sold in Millions']
+iPhoneUnitsData['Units Sold in Millions'] = pd.to_numeric(iPhoneUnitsData['Units Sold in Millions'], errors='coerce')
+
+iPadUnits = 'C:/Users/cornellt/Downloads/statistic_id1421547_apple-ipad-sales-2011-2023.xlsx'
+iPadUnitsData = pd.read_excel(iPadUnits, sheet_name= 'Data', skiprows=4, usecols='B:C')
+iPadUnitsData.columns=['Year', 'Units Sold in Millions']
+iPadUnitsData['Units Sold in Millions'] = pd.to_numeric(iPhoneUnitsData['Units Sold in Millions'], errors='coerce')
+
+SpotifySubs = 'C:/Users/cornellt/Downloads/statistic_id244995_spotifys-premium-subscribers-2015-2024.xlsx'
+SpotifySubsData = pd.read_excel(SpotifySubs, sheet_name= 'Data', skiprows= 4, usecols='B:C')
+SpotifySubsData.columns=['Quarter', 'Premium Subscribers in Millions']
+SpotifySubsData['Premium Subscribers in Millions'] = pd.to_numeric(SpotifySubsData['Premium Subscribers in Millions'])
+
+AppleMusicSubs = 'C:/Users/cornellt/Downloads/statistic_id604959_number-of-apple-music-subscribers-worldwide-2015-2023.xlsx'
+AppleMusicSubsData = pd.read_excel(AppleMusicSubs, sheet_name= 'Data', skiprows= 4, usecols='B:C')
+AppleMusicSubsData.columns=['Year', 'Number of Subscribers in Millions']
+AppleMusicSubsData['Number of Subscribers in Millions'] = pd.to_numeric(AppleMusicSubsData['Number of Subscribers in Millions'])
+
+# iPhone Revenue Model
+iPhoneRev_model = ExponentialSmoothing(iPhoneRevData['Revenue in Millions USD'], seasonal_periods=4, trend='add', seasonal='add')
+iPhoneRev_model_triple_fit = iPhoneRev_model.fit()
+iPhoneRev_Forecast = iPhoneRev_model_triple_fit.forecast(12) #Goes till Q4 2027
+
+iPhoneRev_Forecast = iPhoneRev_Forecast.to_frame()
+iPhoneRev_Forecast.columns = ['Projected Revenue in Millions USD']
+iPhoneRev_Forecast.reset_index(drop=True, inplace=True)
+iPhoneRev_Forecast['Quarter'] = None
+Quarter4iPhone_forecast = 1
+Year4iphone_forecast = 25
+for i in range(len(iPhoneRev_Forecast)):
+    new_quarter = f"Q{Quarter4iPhone_forecast} '{Year4iphone_forecast}"
+    iPhoneRev_Forecast.at[i, 'Quarter'] = new_quarter
+    Quarter4iPhone_forecast += 1
+    if Quarter4iPhone_forecast > 4:
+        Quarter4iPhone_forecast = 1
+        Year4iphone_forecast += 1
+print("Data for iPhone Revenue \n",iPhoneRev_Forecast)
+
+
+# iPad Revenue Model
+iPadRev_model = ExponentialSmoothing(iPadRevData['Revenue in Millions USD'], seasonal_periods=4, trend='add', seasonal='add')
+iPadRev_model_triple_fit = iPadRev_model.fit()
+iPadRev_Forecast = iPadRev_model_triple_fit.forecast(12) #Goes till Q4 2027
+
+iPadRev_Forecast = iPadRev_Forecast.to_frame() #Series to dataframe
+iPadRev_Forecast.columns = ['Projected Revenue in Millions USD']
+iPadRev_Forecast.reset_index(drop=True, inplace=True)
+iPadRev_Forecast['Quarter'] = None
+Quarter4iPad_forecast = 1 #Start point for quarter
+Year4ipad_forecast = 25 #Start point for year
+#loop to create quarter column that properly displays the forecasted quarters
+for i in range(len(iPadRev_Forecast)):
+    new_quarter = f"Q{Quarter4iPad_forecast} '{Year4ipad_forecast}"
+    iPadRev_Forecast.at[i, 'Quarter'] = new_quarter
+    Quarter4iPad_forecast += 1
+    if Quarter4iPad_forecast > 4:
+        Quarter4iPad_forecast = 1
+        Year4ipad_forecast += 1
+print("Data for iPad Revenue \n",iPadRev_Forecast)
+
+
+# iPhone Unit Sales Model
+iPhoneUnits_model= ExponentialSmoothing(iPhoneUnitsData['Units Sold in Millions'], seasonal_periods=4, trend='add', seasonal='add')
+iPhoneUnits_model_triple_fit = iPhoneUnits_model.fit()
+iPhoneUnits_Forecast = iPhoneUnits_model_triple_fit.forecast(36) # Last data point is in Q4 2018 so takes 36 quarters to reach Q4 2027
+
+iPhoneUnits_Forecast = iPhoneUnits_Forecast.to_frame() #Converts to DataFrame
+iPhoneUnits_Forecast.columns = ['Units Sold in Millions']
+iPhoneUnits_Forecast.reset_index(drop=True, inplace=True)
+iPhoneUnits_Forecast['Quarter'] = None
+Quarter4iPhoneUnits_forecast = 1 #Start point for quarter
+Year4iphoneUnits_forecast = 19 #Start point for year because last data point is in Q4 2018
+for i in range(len(iPhoneUnits_Forecast)):
+    new_quarter = f"Q{Quarter4iPhoneUnits_forecast} '{Year4iphoneUnits_forecast}"
+    iPhoneUnits_Forecast.at[i, 'Quarter'] = new_quarter
+    Quarter4iPhoneUnits_forecast += 1
+    if Quarter4iPhoneUnits_forecast > 4:
+        Quarter4iPhoneUnits_forecast = 1
+        Year4iphoneUnits_forecast += 1
+print("Data for iPhone Units \n",iPhoneUnits_Forecast)
+
+
+
+# iPad Unit Sales Model
+iPadUnits_model = Holt(iPadUnitsData['Units Sold in Millions'])
+iPadUnits_model_double_fit = iPadUnits_model.fit()
+iPadUnits_Forecast = iPadUnits_model_double_fit.forecast(4) 
+
+iPadUnits_Forecast = iPadUnits_Forecast.to_frame() #Made series into dataframe
+iPadUnits_Forecast.columns = ['Units Sold in Millions']
+iPadUnits_Forecast.reset_index(drop=True, inplace=True)
+iPadUnits_Forecast['Year'] = None
+Year4iPadUnits_forecast = 24 #Start point for year because data ended in 2023
+for i in range(len(iPadUnits_Forecast)):
+    new_year = f"{Year4iPadUnits_forecast}"
+    iPadUnits_Forecast.at[i, 'Year'] = new_year
+    Year4iPadUnits_forecast += 1
+print("Data for iPad Units \n",iPadUnits_Forecast)
+
+
+# Spotify Premium Subscribers Model
+SpotifySubs_model = ExponentialSmoothing(SpotifySubsData['Premium Subscribers in Millions'], seasonal_periods=4, trend='add', seasonal='add')
+SpotifySubs_model_triple_fit = SpotifySubs_model.fit()
+SpotifySubs_Forecast = SpotifySubs_model_triple_fit.forecast(202) # 202 quarters for 50 years plus the last 2 quarters of 2024 not included
+
+SpotifySubs_Forecast = SpotifySubs_Forecast.to_frame() #Make series in to a dataframe
+SpotifySubs_Forecast.columns = ['Projected Premium Subscribers in Millions']
+SpotifySubs_Forecast.reset_index(drop=True, inplace=True)
+SpotifySubs_Forecast['Quarter'] = None
+Quarter4SpotifySubs_forecast = 3 #Start point for quarter because last data point was Q2
+Year4SpotifySubs_forecast = 24 #Start point for year because last data point was in 2023
+for i in range(len(SpotifySubs_Forecast)):
+    new_quarter = f"Q{Quarter4SpotifySubs_forecast} '{Year4SpotifySubs_forecast}"
+    SpotifySubs_Forecast.at[i, 'Quarter'] = new_quarter
+    Quarter4SpotifySubs_forecast += 1
+    if Quarter4SpotifySubs_forecast > 4:
+        Quarter4SpotifySubs_forecast = 1
+        Year4SpotifySubs_forecast += 1
+print("Data for Spotify Premium Subscribers \n",SpotifySubs_Forecast)
+
+
+#Apple Music Subscribers Model
+AppleMusicSubs_model = Holt(AppleMusicSubsData['Number of Subscribers in Millions'])
+AppleMusicSubs_model_double_fit = AppleMusicSubs_model.fit()
+AppleMusicSubs_Forecast = AppleMusicSubs_model_double_fit.forecast(51) #50 years from 2024 but data ends in 2023
+
+AppleMusicSubs_Forecast = AppleMusicSubs_Forecast.to_frame() #Make series in to a dataframe
+AppleMusicSubs_Forecast.columns = ['Projected Number of Subscribers in Millions']
+AppleMusicSubs_Forecast.reset_index(drop=True, inplace=True)
+AppleMusicSubs_Forecast['Year'] = None
+Year4AppleMusicSubs_forecast = 24 #Start point for year because data ended in 2023
+for i in range(len(AppleMusicSubs_Forecast)):
+    new_year = f"Jun '{Year4AppleMusicSubs_forecast}"
+    AppleMusicSubs_Forecast.at[i, 'Year'] = new_year
+    Year4AppleMusicSubs_forecast += 1
+print("Data for Apple Music Subscribers \n",AppleMusicSubs_Forecast)
+
+#Spotify vs Apple Music Subs
+AppleMusicSubs_Forecast['Year'] = AppleMusicSubs_Forecast['Year'].apply(lambda x: int(x.split(" ")[1].replace("'", "")))  # Remove apostrophe and convert to integer
+AppleMusicSubs_Forecast['Quarter'] = 'Q2'  # Apple Music corresponds to Q2 each year
+
+# Extract quarter and year from Spotify forecast (Quarter column contains 'QX 'YY')
+SpotifySubs_Forecast['Year'] = SpotifySubs_Forecast['Quarter'].apply(lambda x: int(x.split(" ")[1].replace("'", "")))  # Extract year
+SpotifySubs_Forecast['Quarter'] = SpotifySubs_Forecast['Quarter'].apply(lambda x: int(x[1]))  # Extract quarter number (Q1, Q2, Q3, Q4)
+
+# Filter for Q2 data for both Apple Music and Spotify
+AppleMusicSubs_Forecast_Q2 = AppleMusicSubs_Forecast[AppleMusicSubs_Forecast['Quarter'] == 'Q2']
+SpotifySubs_Forecast_Q2 = SpotifySubs_Forecast[SpotifySubs_Forecast['Quarter'] == 2]
+
+# Merge data on the 'Year' column to align Apple Music and Spotify data for Q2 because only have Apple data for June which aligns with end of Q2
+merged_data = pd.merge(AppleMusicSubs_Forecast_Q2[['Year', 'Projected Number of Subscribers in Millions']],
+                       SpotifySubs_Forecast_Q2[['Year', 'Projected Premium Subscribers in Millions']],
+                       on='Year', how='inner')
+
+# Calculate the difference between Spotify and Apple Music subscribers
+merged_data['Difference (Spotify - Apple Music)'] = merged_data['Projected Premium Subscribers in Millions'] - merged_data['Projected Number of Subscribers in Millions']
+merged_data['Year'] = merged_data['Year'].apply(lambda x: f"20{x}" if isinstance(x, int) else x) # Format year as '20XX' for display
+print("Merged data \n",merged_data)
+
+# Plotting line for difference 
+plt.figure(figsize=(10, 6))
+plt.plot(merged_data['Year'], merged_data['Difference (Spotify - Apple Music)'], marker='o', linestyle='-', color='g')
+
+
+# Find the positions of the years where you want to display the labels (every 5 years)
+tick_positions = [i for i in range(len(merged_data['Year'])) if int(merged_data['Year'].iloc[i].split(' ')[0][2:]) % 5 == 0]
+
+# Set the x-tick labels at those positions
+plt.xticks(tick_positions, [merged_data['Year'].iloc[i] for i in tick_positions], rotation=45)
+
+plt.title('Difference between Spotify and Apple Music Subscribers (Q2)', fontsize=14)
+plt.xlabel('Year', fontsize=12)
+plt.ylabel('Difference in Subscribers (Millions)', fontsize=12)
+plt.grid(True)
+plt.show()
